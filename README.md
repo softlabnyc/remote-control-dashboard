@@ -10,6 +10,6 @@ npm run dev
 
 ## TODO
 
-- style auth pages
-- set up smtp deploy
+- set up smtp on sendgrid
+- set auth env variables on DO
 - add digital ocean config to .do folder?

@@ -23,4 +23,10 @@ const options = {
   ],
   adapter: PrismaAdapter(prisma),
   secret: process.env.SECRET,
+  pages: {
+    signIn: '/auth/signin',
+    signOut: '/auth/signout',
+    error: '/auth/signin',
+    verifyRequest: '/auth/verify',
+  },
 };
