@@ -1,5 +1,7 @@
 import Head from 'next/head';
+import { createSSGHelpers } from '@trpc/react/ssg';
 import { getSession, signOut, useSession } from 'next-auth/react';
+import { trpc } from '../lib/trpc';
 import { GetServerSideProps } from 'next';
 import PageLayout from '../components/PageLayout';
 import {
@@ -9,7 +11,6 @@ import {
   Flex,
   Heading,
   HStack,
-  Link,
   Tab,
   TabList,
   TabPanel,
@@ -19,9 +20,16 @@ import {
   useColorModeValue as mode,
 } from '@chakra-ui/react';
 import { HiChartBar, HiDownload, HiPlus } from 'react-icons/hi';
+import { useEffect } from 'react';
+import { appRouter } from '../server/routers/_app';
+import superjson from 'superjson';
+import { prisma } from '../lib/prisma';
+import { InferGetServerSidePropsType } from 'next';
+
+import { createContext } from '../server/context';
 
 export default function Home() {
-  const { data: session } = useSession();
+  const projects = trpc.useQuery(['project.findAll']);
 
   return (
     <PageLayout>
@@ -86,7 +94,8 @@ export default function Home() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
+  const trpcContext = await createContext(context);
+  const { session } = trpcContext;
 
   if (!session) {
     return {
@@ -97,9 +106,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  const ssg = await createSSGHelpers({
+    router: appRouter,
+    ctx: trpcContext,
+    transformer: superjson,
+  });
+
+  await ssg.fetchQuery('project.findAll');
+
   return {
     props: {
-      session: await getSession(context),
+      session,
+      trpcState: ssg.dehydrate(),
     },
   };
 };
