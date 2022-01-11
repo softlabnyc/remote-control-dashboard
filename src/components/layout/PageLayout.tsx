@@ -1,10 +1,10 @@
 import { BoxProps, Flex, useColorModeValue as mode } from '@chakra-ui/react';
 import * as React from 'react';
-import { Logo } from './Logo';
-import { MobileHamburgerMenu } from './MobileHamburgerMenu';
-import { NavMenu } from './NavMenu';
-import { ProfileDropdown } from './ProfileDropdown';
-import { useMobileMenuState } from './useMobileMenuState';
+import { Logo } from '../Logo';
+import { MobileHamburgerMenu } from '../MobileHamburgerMenu';
+import { NavMenu } from '../NavMenu';
+import { ProfileDropdown } from '../ProfileDropdown';
+import { useMobileMenuState } from '../useMobileMenuState';
 
 export const PageLayout = ({ children, ...props }: BoxProps) => {
   const { isMenuOpen, toggle } = useMobileMenuState();
@@ -13,7 +13,7 @@ export const PageLayout = ({ children, ...props }: BoxProps) => {
     <Flex
       direction="column"
       bg={mode('gray.100', 'gray.800')}
-      height="100vh"
+      minH="100vh"
       {...props}
     >
       <Flex align="center" bg="blue.600" color="white" px="6" minH="16">

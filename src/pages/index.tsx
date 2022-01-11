@@ -1,9 +1,8 @@
 import Head from 'next/head';
 import { createSSGHelpers } from '@trpc/react/ssg';
-import { getSession, signOut, useSession } from 'next-auth/react';
 import { trpc } from '../lib/trpc';
 import { GetServerSideProps } from 'next';
-import PageLayout from '../components/PageLayout';
+import PageLayout from '../components/layout/PageLayout';
 import {
   Box,
   Button,
@@ -11,6 +10,7 @@ import {
   Flex,
   Heading,
   HStack,
+  Stack,
   Tab,
   TabList,
   TabPanel,
@@ -18,18 +18,35 @@ import {
   Tabs,
   Text,
   useColorModeValue as mode,
+  useToast,
+  VStack,
 } from '@chakra-ui/react';
-import { HiChartBar, HiDownload, HiPlus } from 'react-icons/hi';
-import { useEffect } from 'react';
+import { HiPlus } from 'react-icons/hi';
 import { appRouter } from '../server/routers/_app';
 import superjson from 'superjson';
-import { prisma } from '../lib/prisma';
-import { InferGetServerSidePropsType } from 'next';
 
-import { createContext } from '../server/context';
+import { createTRPCContext } from '../server/context';
+import ProjectDrawer from '../components/projects/ProjectDrawer';
+import { useEffect } from 'react';
+import pluralize from 'pluralize';
+import ProjectCard from '../components/projects/ProjectCard';
 
 export default function Home() {
-  const projects = trpc.useQuery(['project.findAll']);
+  const { data, error } = trpc.useQuery(['project.findAll']);
+  const projects = data ?? [];
+  const mutation = trpc.useMutation(['project.create']);
+  const toast = useToast();
+  const utils = trpc.useContext();
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: error?.message,
+        status: 'error',
+        isClosable: true,
+      });
+    }
+  }, [toast, error]);
 
   return (
     <PageLayout>
@@ -46,18 +63,18 @@ export default function Home() {
                 <HStack mb={{ base: '4', md: '0' }}>
                   <Heading size="lg">Projects</Heading>
                   <Text color={mode('gray.500', 'gray.300')} fontSize="sm">
-                    (42 Projects)
+                    ({projects.length} {pluralize('Project', projects.length)})
                   </Text>
                 </HStack>
 
                 <HStack spacing={{ base: '2', md: '4' }}>
-                  <Button
-                    colorScheme="blue"
-                    leftIcon={<HiPlus />}
-                    fontSize="sm"
-                  >
-                    New project
-                  </Button>
+                  <ProjectDrawer
+                    mode="create"
+                    onCreate={async (values) => {
+                      await mutation.mutateAsync(values);
+                      await utils.invalidateQueries(['project.findAll']);
+                    }}
+                  />
                 </HStack>
               </Flex>
 
@@ -83,7 +100,13 @@ export default function Home() {
           <Box px="8" flex="1">
             <Box maxW="7xl" mx="auto">
               <TabPanels mt="5" h="full">
-                <TabPanel>Manage</TabPanel>
+                <TabPanel>
+                  <Stack spacing="6">
+                    {projects.map((project) => (
+                      <ProjectCard key={project.id} project={project} />
+                    ))}
+                  </Stack>
+                </TabPanel>
               </TabPanels>
             </Box>
           </Box>
@@ -94,7 +117,7 @@ export default function Home() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const trpcContext = await createContext(context);
+  const trpcContext = await createTRPCContext(context);
   const { session } = trpcContext;
 
   if (!session) {

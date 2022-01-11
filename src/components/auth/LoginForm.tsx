@@ -71,14 +71,16 @@ export const LoginForm = ({ csrfToken, ...props }: Props) => {
         <Form ref={ref} method="post" action="/api/auth/signin/email">
           <Field type="hidden" name="csrfToken" />
           <Stack spacing="6">
-            <Field type="email" name="email" placeholder="mail@example.com">
+            <Field name="email">
               {({ field }: FieldProps<string>) => (
-                <FormControl
-                  id="email"
-                  isInvalid={!!(errors.email && touched.email)}
-                >
-                  <FormLabel>Email address</FormLabel>
-                  <Input {...field} />
+                <FormControl isInvalid={!!(errors.email && touched.email)}>
+                  <FormLabel htmlFor="email">Email address</FormLabel>
+                  <Input
+                    {...field}
+                    id="email"
+                    type="email"
+                    placeholder="mail@example.com"
+                  />
                   {errors.email && touched.email ? (
                     <FormErrorMessage lineHeight={'normal'}>
                       {errors.email}

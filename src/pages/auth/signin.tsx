@@ -1,10 +1,10 @@
 import { Heading, Stack } from '@chakra-ui/react';
 import * as React from 'react';
 import { Card } from '../../components/Card';
-import { LoginForm } from '../../components/LoginForm';
+import { LoginForm } from '../../components/auth/LoginForm';
 import { getCsrfToken, getSession } from 'next-auth/react';
 import type { GetServerSideProps } from 'next';
-import AuthLayout from '../../components/AuthLayout';
+import AuthLayout from '../../components/layout/AuthLayout';
 
 export default function SignIn({
   csrfToken,

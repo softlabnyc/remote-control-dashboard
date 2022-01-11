@@ -1,7 +1,7 @@
 import { createRouter } from '../createRouter';
 import * as Yup from 'yup';
 import { TRPCError } from '@trpc/server';
-import { getSession } from 'next-auth/react';
+import { nanoid } from 'nanoid';
 
 export const projectRouter = createRouter()
   .middleware(async ({ ctx, next }) => {
@@ -20,7 +20,7 @@ export const projectRouter = createRouter()
     async resolve({ ctx, input }) {
       const post = await ctx.prisma.project.create({
         data: {
-          channelKey: '',
+          channelKey: await nanoid(),
           user: { connect: { id: ctx.session!.user.id } },
           ...input,
         },
@@ -31,18 +31,17 @@ export const projectRouter = createRouter()
   .query('findAll', {
     async resolve({ ctx }) {
       return ctx.prisma.project.findMany({
-        select: {
-          id: true,
-        },
+        orderBy: [
+          {
+            valuesUpdatedAt: 'desc',
+          },
+        ],
       });
     },
   })
   .query('find', {
-    input: Yup.object({
-      id: Yup.number().required().positive().integer(),
-    }),
-    async resolve({ ctx, input }) {
-      const { id } = input;
+    input: Yup.number().required().positive().integer(),
+    async resolve({ ctx, input: id }) {
       const project = await ctx.prisma.project.findUnique({
         where: { id },
       });
@@ -55,23 +54,25 @@ export const projectRouter = createRouter()
       return project;
     },
   })
-  // .mutation('update', {
-  //   input: Yup.object({
-  //     id: Yup.number().required().positive().integer(),
-  //     data: Yup.object({
-  //       title: z.string().min(1).max(32).optional(),
-  //       text: z.string().min(1).optional(),
-  //     }),
-  //   }),
-  //   async resolve({ ctx, input }) {
-  //     const { id, data } = input;
-  //     const post = await ctx.prisma.project.update({
-  //       where: { id },
-  //       data,
-  //     });
-  //     return post;
-  //   },
-  // })
+  .mutation('update', {
+    input: Yup.object({
+      id: Yup.number().required().positive().integer(),
+      data: Yup.object({
+        name: Yup.string().optional(),
+        location: Yup.string().optional(),
+        description: Yup.string().optional(),
+        client: Yup.string().optional(),
+      }),
+    }),
+    async resolve({ ctx, input }) {
+      const { id, data } = input;
+      const post = await ctx.prisma.project.update({
+        where: { id },
+        data,
+      });
+      return post;
+    },
+  })
   .mutation('delete', {
     input: Yup.number().required().positive().integer(),
     async resolve({ input: id, ctx }) {

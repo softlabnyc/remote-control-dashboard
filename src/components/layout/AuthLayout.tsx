@@ -1,6 +1,6 @@
 import { Box, BoxProps, useColorModeValue } from '@chakra-ui/react';
 import * as React from 'react';
-import { Logo } from './Logo';
+import { Logo } from '../Logo';
 
 export const AuthLayout = ({ children, ...props }: BoxProps) => (
   <Box
