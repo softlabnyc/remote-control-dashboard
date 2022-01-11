@@ -1,7 +1,7 @@
 import { Button, Heading, Stack } from '@chakra-ui/react';
 import { GetServerSideProps } from 'next';
 import { getSession, signOut, useSession } from 'next-auth/react';
-import AuthLayout from '../../components/layout/AuthLayout';
+import { AuthLayout } from '../../components/layout/AuthLayout';
 import { Card } from '../../components/Card';
 
 export default function SignOut() {

@@ -1,5 +1,5 @@
 import { Heading, Stack } from '@chakra-ui/react';
-import AuthLayout from '../../components/layout/AuthLayout';
+import { AuthLayout } from '../../components/layout/AuthLayout';
 import { Card } from '../../components/Card';
 
 export default function Verify() {

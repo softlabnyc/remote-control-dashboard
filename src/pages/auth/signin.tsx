@@ -4,7 +4,7 @@ import { Card } from '../../components/Card';
 import { LoginForm } from '../../components/auth/LoginForm';
 import { getCsrfToken, getSession } from 'next-auth/react';
 import type { GetServerSideProps } from 'next';
-import AuthLayout from '../../components/layout/AuthLayout';
+import { AuthLayout } from '../../components/layout/AuthLayout';
 
 export default function SignIn({
   csrfToken,
