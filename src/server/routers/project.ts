@@ -58,7 +58,11 @@ export const projectRouter = createRouter()
     input: Yup.object({
       id: Yup.number().required().positive().integer(),
       data: Yup.object({
-        name: Yup.string().optional(),
+        name: Yup.lazy((name) =>
+          typeof name === 'undefined'
+            ? Yup.string().optional()
+            : Yup.string().required()
+        ),
         location: Yup.string().optional(),
         description: Yup.string().optional(),
         client: Yup.string().optional(),

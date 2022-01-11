@@ -58,6 +58,21 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
 
   const [isDeleting, setIsDeleting] = React.useState(false);
 
+  const initialValues =
+    props.mode == 'create'
+      ? {
+          name: '',
+          client: '',
+          location: '',
+          description: '',
+        }
+      : {
+          name: props.values.name ?? '',
+          client: props.values.client ?? '',
+          location: props.values.location ?? '',
+          description: props.values.description ?? '',
+        };
+
   return (
     <>
       {props.mode == 'create' ? (
@@ -94,21 +109,7 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
             {props.mode == 'create' ? 'Add a new project' : 'Edit project'}
           </DrawerHeader>
           <Formik
-            initialValues={
-              props.mode == 'create'
-                ? {
-                    name: '',
-                    client: '',
-                    location: '',
-                    description: '',
-                  }
-                : {
-                    name: props.values.name ?? '',
-                    client: props.values.client ?? '',
-                    location: props.values.location ?? '',
-                    description: props.values.description ?? '',
-                  }
-            }
+            initialValues={initialValues}
             validationSchema={CreateProjectSchema}
             onSubmit={async (values, { setSubmitting }) => {
               try {

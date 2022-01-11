@@ -1,4 +1,4 @@
-import { Button } from '@chakra-ui/react';
+import { Button, Code } from '@chakra-ui/react';
 import type { Project } from '@prisma/client';
 import { trpc } from '../../lib/trpc';
 import { Card } from '../Card';
@@ -36,10 +36,13 @@ export const ProjectCard = ({ project }: { project: Project }) => {
         }
       />
       <CardContent>
-        <Property label="Client" value={project.client ?? ''} />
-        <Property label="Location" value={project.location ?? ''} />
-        <Property label="Description" value={project.description ?? ''} />
-        <Property label="Channel Key" value={project.channelKey ?? ''} />
+        <Property label="Client" value={project.client} />
+        <Property label="Location" value={project.location} />
+        <Property label="Description" value={project.description} />
+        <Property
+          label="Channel Key"
+          value={<Code>{project.channelKey}</Code>}
+        />
       </CardContent>
     </Card>
   );
