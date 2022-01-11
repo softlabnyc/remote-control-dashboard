@@ -2,10 +2,11 @@ import Head from 'next/head';
 import { createSSGHelpers } from '@trpc/react/ssg';
 import { trpc } from '../lib/trpc';
 import { GetServerSideProps } from 'next';
-import PageLayout from '../components/layout/PageLayout';
+import { PageLayout } from '../components/layout/PageLayout';
 import {
   Box,
   Button,
+  Center,
   Divider,
   Flex,
   Heading,
@@ -18,6 +19,7 @@ import {
   Tabs,
   Text,
   useColorModeValue as mode,
+  useColorModeValue,
   useToast,
   VStack,
 } from '@chakra-ui/react';
@@ -26,10 +28,11 @@ import { appRouter } from '../server/routers/_app';
 import superjson from 'superjson';
 
 import { createTRPCContext } from '../server/context';
-import ProjectDrawer from '../components/projects/ProjectDrawer';
+import { ProjectDrawer } from '../components/projects/ProjectDrawer';
 import { useEffect } from 'react';
 import pluralize from 'pluralize';
-import ProjectCard from '../components/projects/ProjectCard';
+import { ProjectCard } from '../components/projects/ProjectCard';
+import { Card } from '../components/Card';
 
 export default function Home() {
   const { data, error } = trpc.useQuery(['project.findAll']);
@@ -102,9 +105,13 @@ export default function Home() {
               <TabPanels mt="5" h="full">
                 <TabPanel>
                   <Stack spacing="6">
-                    {projects.map((project) => (
-                      <ProjectCard key={project.id} project={project} />
-                    ))}
+                    {projects.length > 0 ? (
+                      projects.map((project) => (
+                        <ProjectCard key={project.id} project={project} />
+                      ))
+                    ) : (
+                      <Card.Empty>No projects</Card.Empty>
+                    )}
                   </Stack>
                 </TabPanel>
               </TabPanels>

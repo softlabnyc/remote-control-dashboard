@@ -48,5 +48,3 @@ export const PageLayout = ({ children, ...props }: BoxProps) => {
     </Flex>
   );
 };
-
-export default PageLayout;

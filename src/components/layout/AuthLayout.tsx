@@ -16,5 +16,3 @@ export const AuthLayout = ({ children, ...props }: BoxProps) => (
     </Box>
   </Box>
 );
-
-export default AuthLayout;

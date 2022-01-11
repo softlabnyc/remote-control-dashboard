@@ -48,7 +48,7 @@ type ProjectDrawerProps =
       onDelete: () => Promise<void>;
     };
 
-function ProjectDrawer(props: ProjectDrawerProps) {
+export const ProjectDrawer = (props: ProjectDrawerProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const firstField = React.useRef<HTMLInputElement>(null);
 
@@ -282,6 +282,4 @@ function ProjectDrawer(props: ProjectDrawerProps) {
       </Drawer>
     </>
   );
-}
-
-export default ProjectDrawer;
+};

@@ -5,7 +5,7 @@ import { Card } from '../Card';
 import { CardContent } from '../CardContent';
 import { CardHeader } from '../CardHeader';
 import { Property } from '../Property';
-import ProjectDrawer from './ProjectDrawer';
+import { ProjectDrawer } from './ProjectDrawer';
 
 export const ProjectCard = ({ project }: { project: Project }) => {
   const updateMutation = trpc.useMutation(['project.update']);
@@ -44,5 +44,3 @@ export const ProjectCard = ({ project }: { project: Project }) => {
     </Card>
   );
 };
-
-export default ProjectCard;
