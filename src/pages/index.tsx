@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { createSSGHelpers } from '@trpc/react/ssg';
-import { trpc } from '../lib/trpc';
+import { trpc } from '../utils/trpc';
 import { GetServerSideProps } from 'next';
 import { PageLayout } from '../components/layout/PageLayout';
 import {
@@ -27,9 +27,9 @@ import { HiPlus } from 'react-icons/hi';
 import { appRouter } from '../server/routers/_app';
 import superjson from 'superjson';
 
-import { createTRPCContext } from '../server/context';
+import { createContext } from '../server/context';
 import { ProjectDrawer } from '../components/projects/ProjectDrawer';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import pluralize from 'pluralize';
 import { ProjectCard } from '../components/projects/ProjectCard';
 import { Card } from '../components/Card';
@@ -124,7 +124,7 @@ export default function Home() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const trpcContext = await createTRPCContext(context);
+  const trpcContext = await createContext(context);
   const { session } = trpcContext;
 
   if (!session) {

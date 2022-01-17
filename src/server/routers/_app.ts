@@ -1,3 +1,4 @@
+import { Subscription } from '@trpc/server';
 import superjson from 'superjson';
 import { createRouter } from '../createRouter';
 import { projectRouter } from './project';

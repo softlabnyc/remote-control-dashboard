@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "esrun server.ts",
+    "dev": "ts-node --project tsconfig.server.json --files server.ts",
     "lint": "next lint",
     "build": "next build",
-    "start": "cross-env NODE_ENV=production esrun server.ts",
+    "start": "cross-env NODE_ENV=production ts-node --project tsconfig.server.json --files server.ts",
     "prepare": "husky install"
   },
   "dependencies": {
@@ -18,6 +18,7 @@
     "@trpc/next": "^9.16.0",
     "@trpc/react": "^9.16.0",
     "@trpc/server": "^9.16.0",
+    "email-to-name": "^2.0.4",
     "formik": "^2.2.9",
     "framer-motion": "^5.5.5",
     "nanoid": "^3.1.30",
@@ -29,6 +30,7 @@
     "react-dom": "17.0.2",
     "react-icons": "^4.3.1",
     "superjson": "^1.8.0",
+    "ws": "^8.4.0",
     "yup": "^0.32.11"
   },
   "devDependencies": {
@@ -36,6 +38,7 @@
     "@types/express": "^4.17.13",
     "@types/pluralize": "^0.0.29",
     "@types/react": "17.0.38",
+    "@types/ws": "^8.2.2",
     "cross-env": "^7.0.3",
     "eslint-config-next": "12.0.7",
     "eslint-config-prettier": "^8.3.0",

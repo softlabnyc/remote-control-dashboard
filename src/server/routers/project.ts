@@ -21,7 +21,7 @@ export const projectRouter = createRouter()
       const post = await ctx.prisma.project.create({
         data: {
           channelKey: await nanoid(),
-          user: { connect: { id: ctx.session!.user.id } },
+          user: { connect: { id: ctx.session!.user?.id } },
           ...input,
         },
       });

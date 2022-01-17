@@ -1,6 +1,6 @@
 import { Button, Code } from '@chakra-ui/react';
 import type { Project } from '@prisma/client';
-import { trpc } from '../../lib/trpc';
+import { trpc } from '../../utils/trpc';
 import { Card } from '../Card';
 import { CardContent } from '../CardContent';
 import { CardHeader } from '../CardHeader';

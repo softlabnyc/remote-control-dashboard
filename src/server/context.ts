@@ -1,8 +1,8 @@
 import * as trpc from '@trpc/server';
 import { getSession, GetSessionParams } from 'next-auth/react';
-import { prisma } from '../lib/prisma';
+import { prisma } from '../utils/prisma';
 
-export const createTRPCContext = async (params?: GetSessionParams) => {
+export const createContext = async (params?: GetSessionParams) => {
   const session = await getSession(params);
   return {
     session,
@@ -10,4 +10,4 @@ export const createTRPCContext = async (params?: GetSessionParams) => {
   };
 };
 
-export type Context = trpc.inferAsyncReturnType<typeof createTRPCContext>;
+export type Context = trpc.inferAsyncReturnType<typeof createContext>;
