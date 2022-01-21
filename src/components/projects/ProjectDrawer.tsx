@@ -116,7 +116,6 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
                 await onSubmit(values);
                 onClose();
               } catch (error) {
-                setSubmitting(false);
                 if (error instanceof Error) {
                   toast({
                     title: error.message,
@@ -124,6 +123,8 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
                     isClosable: true,
                   });
                 }
+              } finally {
+                setSubmitting(false);
               }
             }}
           >
@@ -259,7 +260,6 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
                               await props.onDelete();
                               onClose();
                             } catch (error) {
-                              setIsDeleting(false);
                               if (error instanceof Error) {
                                 toast({
                                   title: error.message,
@@ -267,6 +267,8 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
                                   isClosable: true,
                                 });
                               }
+                            } finally {
+                              setIsDeleting(false);
                             }
                           }
                         }}

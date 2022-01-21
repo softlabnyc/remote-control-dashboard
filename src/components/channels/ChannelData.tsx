@@ -10,6 +10,7 @@ import { ChannelDataItemProperty } from './ChannelDataItemProperty';
 import { ChannelDataItemType } from './ChannelDataItemType';
 import { ChannelDataItemValue } from './ChannelDataItemValue';
 import { ChannelDataTableActions } from './ChannelDataTableHeader';
+import sortObject from 'sort-object-keys';
 
 const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
   const [channel, setChannel] = useState(initialChannel);
@@ -57,7 +58,7 @@ const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
             Cell: ChannelDataItemType,
           },
         ]}
-        data={Object.entries(channel.data as JSONObject)}
+        data={Object.entries(sortObject(channel.data as JSONObject))}
         Action={function ActionCell([property, value]: [
           property: string,
           value: Prisma.JsonValue
@@ -66,13 +67,14 @@ const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
             <ChannelDataItemDrawer
               mode="edit"
               values={{ property, value }}
-              onUpdate={async ({ property, value }) => {
+              onUpdate={async ({ property: newProperty, value: newValue }) => {
                 await updateMutation.mutateAsync({
                   key: channel.key,
                   data: {
-                    data: {
-                      [property]: value,
-                    },
+                    data: Object.assign(
+                      { [property]: undefined },
+                      { [newProperty]: newValue }
+                    ),
                   },
                 });
               }}

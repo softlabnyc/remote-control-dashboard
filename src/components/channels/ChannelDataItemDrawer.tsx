@@ -188,7 +188,6 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
                 });
                 onClose();
               } catch (error) {
-                setSubmitting(false);
                 if (error instanceof Error) {
                   toast({
                     title: error.message,
@@ -196,6 +195,8 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
                     isClosable: true,
                   });
                 }
+              } finally {
+                setSubmitting(false);
               }
             }}
           >
@@ -305,7 +306,6 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
                               await props.onDelete();
                               onClose();
                             } catch (error) {
-                              setIsDeleting(false);
                               if (error instanceof Error) {
                                 toast({
                                   title: error.message,
@@ -313,6 +313,8 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
                                   isClosable: true,
                                 });
                               }
+                            } finally {
+                              setIsDeleting(false);
                             }
                           }
                         }}
