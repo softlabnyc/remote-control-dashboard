@@ -5,6 +5,9 @@ import { GetServerSideProps } from 'next';
 import { PageLayout } from '../components/layout/PageLayout';
 import {
   Box,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
   Button,
   Center,
   Divider,
@@ -23,7 +26,7 @@ import {
   useToast,
   VStack,
 } from '@chakra-ui/react';
-import { HiPlus } from 'react-icons/hi';
+import { HiChevronRight, HiPlus } from 'react-icons/hi';
 import { appRouter } from '../server/routers/_app';
 import superjson from 'superjson';
 
@@ -33,23 +36,15 @@ import { useEffect, useState } from 'react';
 import pluralize from 'pluralize';
 import { ProjectCard } from '../components/projects/ProjectCard';
 import { Card } from '../components/Card';
+import { useErrorToast } from '../components/useErrorToast';
 
 export default function Home() {
   const { data, error } = trpc.useQuery(['project.findAll']);
   const projects = data ?? [];
   const mutation = trpc.useMutation(['project.create']);
-  const toast = useToast();
   const utils = trpc.useContext();
 
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: error?.message,
-        status: 'error',
-        isClosable: true,
-      });
-    }
-  }, [toast, error]);
+  useErrorToast(error);
 
   return (
     <PageLayout>
@@ -57,30 +52,32 @@ export default function Home() {
         <Flex direction="column" align="stretch" minH="100vh">
           <Box bg={mode('gray.50', 'gray.800')} px="8" pt="8">
             <Box maxW="7xl" mx="auto">
-              <Flex
-                direction={{ base: 'column', md: 'row' }}
-                justify="space-between"
-                align="flex-start"
-                mb="10"
-              >
-                <HStack mb={{ base: '4', md: '0' }}>
-                  <Heading size="lg">Projects</Heading>
-                  <Text color={mode('gray.500', 'gray.300')} fontSize="sm">
-                    ({projects.length} {pluralize('Project', projects.length)})
-                  </Text>
-                </HStack>
+              <Stack>
+                <Flex
+                  direction={{ base: 'column', md: 'row' }}
+                  justify="space-between"
+                  align="flex-start"
+                  mb="10"
+                >
+                  <HStack mb={{ base: '4', md: '0' }}>
+                    <Heading size="lg">Projects</Heading>
+                    <Text color={mode('gray.500', 'gray.300')} fontSize="sm">
+                      ({projects.length} {pluralize('Project', projects.length)}
+                      )
+                    </Text>
+                  </HStack>
 
-                <HStack spacing={{ base: '2', md: '4' }}>
-                  <ProjectDrawer
-                    mode="create"
-                    onCreate={async (values) => {
-                      await mutation.mutateAsync(values);
-                      await utils.invalidateQueries(['project.findAll']);
-                    }}
-                  />
-                </HStack>
-              </Flex>
-
+                  <HStack spacing={{ base: '2', md: '4' }}>
+                    <ProjectDrawer
+                      mode="create"
+                      onCreate={async (values) => {
+                        await mutation.mutateAsync(values);
+                        await utils.invalidateQueries(['project.findAll']);
+                      }}
+                    />
+                  </HStack>
+                </Flex>
+              </Stack>
               <Flex justify="space-between" align="center">
                 <TabList
                   border="0"

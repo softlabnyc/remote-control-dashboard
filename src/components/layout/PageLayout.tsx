@@ -12,7 +12,7 @@ export const PageLayout = ({ children, ...props }: BoxProps) => {
   return (
     <Flex
       direction="column"
-      bg={mode('gray.100', 'gray.800')}
+      bg={mode('gray.50', 'gray.800')}
       minH="100vh"
       {...props}
     >

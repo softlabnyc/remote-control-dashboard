@@ -1,5 +1,6 @@
 import { Button, Code } from '@chakra-ui/react';
-import type { Project } from '@prisma/client';
+import { Prisma, Project } from '@prisma/client';
+import Link from 'next/link';
 import { trpc } from '../../utils/trpc';
 import { Card } from '../Card';
 import { CardContent } from '../CardContent';
@@ -7,7 +8,18 @@ import { CardHeader } from '../CardHeader';
 import { Property } from '../Property';
 import { ProjectDrawer } from './ProjectDrawer';
 
-export const ProjectCard = ({ project }: { project: Project }) => {
+const projectWithChannel = Prisma.validator<Prisma.ProjectArgs>()({
+  include: {
+    channel: {
+      select: {
+        key: true,
+      },
+    },
+  },
+});
+type ProjectWithChannel = Prisma.ProjectGetPayload<typeof projectWithChannel>;
+
+export const ProjectCard = ({ project }: { project: ProjectWithChannel }) => {
   const updateMutation = trpc.useMutation(['project.update']);
   const deleteMutation = trpc.useMutation(['project.delete']);
   const utils = trpc.useContext();
@@ -15,7 +27,6 @@ export const ProjectCard = ({ project }: { project: Project }) => {
   return (
     <Card>
       <CardHeader
-        title={project.name}
         action={
           <ProjectDrawer
             mode="edit"
@@ -34,14 +45,18 @@ export const ProjectCard = ({ project }: { project: Project }) => {
             }}
           />
         }
-      />
+      >
+        <Link href={`/projects/${project.id}`}>
+          <a>{project.name}</a>
+        </Link>
+      </CardHeader>
       <CardContent>
         <Property label="Client" value={project.client} />
         <Property label="Location" value={project.location} />
         <Property label="Description" value={project.description} />
         <Property
           label="Channel Key"
-          value={<Code>{project.channelKey}</Code>}
+          value={<Code>{project.channel!.key}</Code>}
         />
       </CardContent>
     </Card>

@@ -1,10 +1,10 @@
-import { Box, BoxProps, useColorModeValue } from '@chakra-ui/react';
+import { Box, BoxProps, useColorModeValue as mode } from '@chakra-ui/react';
 import * as React from 'react';
 import { Logo } from '../Logo';
 
 export const AuthLayout = ({ children, ...props }: BoxProps) => (
   <Box
-    bg={useColorModeValue('gray.50', 'inherit')}
+    bg={mode('gray.50', 'gray.800')}
     minH="100vh"
     py="12"
     px={{ base: '4', lg: '8' }}

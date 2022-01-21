@@ -1,13 +1,10 @@
 import { Flex, Heading } from '@chakra-ui/react';
 import * as React from 'react';
 
-interface Props {
-  title: string;
-  action?: React.ReactNode;
-}
-
-export const CardHeader = (props: Props) => {
-  const { title, action } = props;
+export const CardHeader: React.FC<{ action?: React.ReactNode }> = ({
+  action,
+  children,
+}) => {
   return (
     <Flex
       align="center"
@@ -16,7 +13,7 @@ export const CardHeader = (props: Props) => {
       py="4"
       borderBottomWidth="1px"
     >
-      <Heading fontSize="lg">{title}</Heading>
+      <Heading fontSize="lg">{children}</Heading>
       {action}
     </Flex>
   );

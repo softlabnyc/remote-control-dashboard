@@ -14,7 +14,9 @@ import {
   FormHelperText,
   FormLabel,
   HStack,
+  IconButton,
   Input,
+  Select,
   Stack,
   Textarea,
   useDisclosure,
@@ -25,33 +27,99 @@ import type { FormikConfig } from 'formik';
 import * as React from 'react';
 import { HiPencilAlt, HiPlus } from 'react-icons/hi';
 import * as Yup from 'yup';
-import { Project } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { Item } from 'framer-motion/types/components/Reorder/Item';
 
-const CreateProjectSchema = Yup.object({
-  name: Yup.string().required('Project name is required.'),
-  location: Yup.string(),
-  description: Yup.string(),
-  client: Yup.string(),
+const ChannelDataItemSchema = Yup.lazy((item) => {
+  const base = {
+    property: Yup.string().required('Property name is required.'),
+    type: Yup.string().oneOf(
+      ['boolean', 'number', 'string', 'object'],
+      'Value type must be String, Number, Boolean, Object, or Array.'
+    ),
+  };
+  switch (item.type) {
+    case 'boolean':
+      return Yup.object({
+        ...base,
+        value: Yup.boolean()
+          .typeError('Value must be a boolean')
+          .required('Boolean value is required'),
+      });
+    case 'number':
+      return Yup.object({
+        ...base,
+        value: Yup.number()
+          .typeError('Value must be a number')
+          .required('Number value is required'),
+      });
+    case 'string':
+      return Yup.object({
+        ...base,
+        value: Yup.string().required('String value is required'),
+      });
+  }
+  return Yup.object({
+    ...base,
+    value: Yup.string()
+      .test('is-valid-json', 'Value must be valid JSON', (value) => {
+        if (!value) return false;
+        try {
+          JSON.parse(value);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      })
+      .required('JSON Object or Array value is required'),
+  });
 });
 
-type CreateProject = Yup.InferType<typeof CreateProjectSchema>;
+type ChannelDataItem = {
+  property: string;
+  value: Prisma.JsonValue;
+};
 
-type ProjectDrawerProps =
+type ChannelDataItemDrawerProps =
   | {
       mode: 'create';
-      onCreate: (values: CreateProject) => Promise<void>;
+      onCreate: (values: ChannelDataItem) => Promise<void>;
     }
   | {
       mode: 'edit';
-      values: Project;
-      onUpdate: (values: CreateProject) => Promise<void>;
+      values: ChannelDataItem;
+      onUpdate: (values: ChannelDataItem) => Promise<void>;
       onDelete: () => Promise<void>;
     };
 
-export const ProjectDrawer = (props: ProjectDrawerProps) => {
+function castChannelDataItem(item: ChannelDataItem) {
+  switch (typeof item.value) {
+    case 'number':
+      return {
+        ...item,
+        type: 'number',
+      };
+    case 'boolean':
+      return {
+        ...item,
+        type: 'boolean',
+      };
+    case 'string':
+      return {
+        ...item,
+        type: 'string',
+      };
+  }
+  return {
+    ...item,
+    value: JSON.stringify(item.value),
+    type: 'object',
+  };
+}
+
+export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const firstField = React.useRef<HTMLInputElement>(null);
-
   const toast = useToast();
 
   const onSubmit = props.mode == 'create' ? props.onCreate : props.onUpdate;
@@ -61,16 +129,14 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
   const initialValues =
     props.mode == 'create'
       ? {
-          name: '',
-          client: '',
-          location: '',
-          description: '',
+          property: '',
+          value: '',
+          type: 'string',
         }
       : {
-          name: props.values.name ?? '',
-          client: props.values.client ?? '',
-          location: props.values.location ?? '',
-          description: props.values.description ?? '',
+          property: castChannelDataItem(props.values).property,
+          value: castChannelDataItem(props.values).value,
+          type: castChannelDataItem(props.values).type,
         };
 
   return (
@@ -78,21 +144,20 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
       {props.mode == 'create' ? (
         <Button
           leftIcon={<HiPlus />}
-          colorScheme="blue"
-          fontSize="sm"
+          variant="outline"
+          size="sm"
           onClick={onOpen}
         >
-          New project
+          New value
         </Button>
       ) : (
-        <Button
-          leftIcon={<HiPencilAlt />}
+        <IconButton
+          icon={<HiPencilAlt />}
           variant="outline"
-          fontSize="sm"
+          size="sm"
+          aria-label="Edit"
           onClick={onOpen}
-        >
-          Edit project
-        </Button>
+        />
       )}
 
       <Drawer
@@ -106,14 +171,21 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
         <DrawerContent>
           <DrawerCloseButton />
           <DrawerHeader borderBottomWidth="1px">
-            {props.mode == 'create' ? 'Add a new project' : 'Edit project'}
+            {props.mode == 'create' ? 'Add a new value' : 'Edit value'}
           </DrawerHeader>
           <Formik
             initialValues={initialValues}
-            validationSchema={CreateProjectSchema}
+            validationSchema={ChannelDataItemSchema}
             onSubmit={async (values, { setSubmitting }) => {
               try {
-                await onSubmit(values);
+                const item = ChannelDataItemSchema.cast(values);
+                await onSubmit({
+                  property: item.property!,
+                  value:
+                    item.type === 'object'
+                      ? JSON.parse(item.value as string)
+                      : item.value,
+                });
                 onClose();
               } catch (error) {
                 setSubmitting(false);
@@ -131,94 +203,68 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
               <Form>
                 <DrawerBody>
                   <Stack spacing="24px">
-                    <Field name="name">
+                    {props.mode == 'create' && (
+                      <Field name="type">
+                        {({ field }: FieldProps<string>) => (
+                          <FormControl
+                            isInvalid={!!(errors.type && touched.type)}
+                          >
+                            <FormLabel htmlFor="property">Property</FormLabel>
+                            <Select {...field} id="type">
+                              <option value="string">String</option>
+                              <option value="number">Number</option>
+                              <option value="boolean">Boolean</option>
+                              <option value="object">Object or Array</option>
+                            </Select>
+                            {errors.type && touched.type ? (
+                              <FormErrorMessage lineHeight={'normal'}>
+                                {errors.type}
+                              </FormErrorMessage>
+                            ) : (
+                              <FormHelperText>
+                                Choose a value type.
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        )}
+                      </Field>
+                    )}
+                    <Field name="property">
                       {({ field }: FieldProps<string>) => (
                         <FormControl
-                          isInvalid={!!(errors.name && touched.name)}
+                          isInvalid={!!(errors.property && touched.property)}
                         >
-                          <FormLabel htmlFor="name">Name</FormLabel>
+                          <FormLabel htmlFor="property">Property</FormLabel>
                           <Input
                             {...field}
-                            id="name"
-                            placeholder="Public Art Installation"
+                            id="property"
+                            placeholder="my_value"
                           />
-                          {errors.name && touched.name ? (
+                          {errors.property && touched.property ? (
                             <FormErrorMessage lineHeight={'normal'}>
-                              {errors.name}
+                              {errors.property}
                             </FormErrorMessage>
                           ) : (
                             <FormHelperText>
-                              Enter the name of the project.
+                              Enter a property name.
                             </FormHelperText>
                           )}
                         </FormControl>
                       )}
                     </Field>
-                    <Field name="client">
+                    <Field name="value">
                       {({ field }: FieldProps<string>) => (
                         <FormControl
-                          isInvalid={!!(errors.client && touched.client)}
+                          isInvalid={!!(errors.value && touched.value)}
                         >
-                          <FormLabel htmlFor="client">Client</FormLabel>
-                          <Input
-                            {...field}
-                            id="client"
-                            placeholder="Center for Architecture"
-                          />
-                          {errors.client && touched.client ? (
+                          <FormLabel htmlFor="value">Value</FormLabel>
+                          <Input {...field} id="value" />
+                          {errors.value && touched.value ? (
                             <FormErrorMessage lineHeight={'normal'}>
-                              {errors.client}
+                              {errors.value}
                             </FormErrorMessage>
                           ) : (
-                            <FormHelperText>
-                              Enter the name of the client (optional).
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      )}
-                    </Field>
-                    <Field name="location">
-                      {({ field }: FieldProps<string>) => (
-                        <FormControl
-                          isInvalid={!!(errors.location && touched.location)}
-                        >
-                          <FormLabel htmlFor="location">Location</FormLabel>
-                          <Input
-                            {...field}
-                            id="location"
-                            placeholder="New York City, NY"
-                          />
-                          {errors.location && touched.location ? (
-                            <FormErrorMessage lineHeight={'normal'}>
-                              {errors.location}
-                            </FormErrorMessage>
-                          ) : (
-                            <FormHelperText>
-                              Enter the location of the project (optional).
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      )}
-                    </Field>
-                    <Field name="description">
-                      {({ field }: FieldProps<string>) => (
-                        <FormControl
-                          isInvalid={
-                            !!(errors.description && touched.description)
-                          }
-                        >
-                          <FormLabel htmlFor="description">
-                            Description
-                          </FormLabel>
-                          <Textarea {...field} id="description" />
-                          {errors.description && touched.description ? (
-                            <FormErrorMessage lineHeight={'normal'}>
-                              {errors.description}
-                            </FormErrorMessage>
-                          ) : (
-                            <FormHelperText>
-                              Enter a description of the project (optional).
-                            </FormHelperText>
+                            <FormHelperText>Enter the value.</FormHelperText>
                           )}
                         </FormControl>
                       )}
@@ -251,7 +297,7 @@ export const ProjectDrawer = (props: ProjectDrawerProps) => {
                           if (
                             typeof window !== 'undefined' &&
                             window.confirm(
-                              'Are you sure you wish to delete this project?'
+                              'Are you sure you wish to delete this value?'
                             )
                           ) {
                             setIsDeleting(true);

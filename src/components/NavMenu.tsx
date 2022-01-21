@@ -19,7 +19,7 @@ const MobileNavMenu = (props: { isOpen?: boolean }) => {
       w="full"
     >
       <Box px="4">
-        <NavItem.Mobile href="/" active label="Projects" />
+        <NavItem.Mobile href="/" label="Projects" />
       </Box>
     </Flex>
   );
@@ -27,7 +27,7 @@ const MobileNavMenu = (props: { isOpen?: boolean }) => {
 
 const DesktopNavMenu = () => (
   <HStack spacing="3" flex="1" display={{ base: 'none', lg: 'flex' }}>
-    <NavItem.Desktop href="/" active icon={<HiTemplate />} label="Projects" />
+    <NavItem.Desktop href="/" icon={<HiTemplate />} label="Projects" />
   </HStack>
 );
 
