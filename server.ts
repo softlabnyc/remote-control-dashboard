@@ -1,4 +1,3 @@
-import express from 'express';
 import next from 'next';
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
@@ -33,6 +32,10 @@ app.prepare().then(() => {
 
   process.on('SIGTERM', () => {
     handler.broadcastReconnectNotification();
+  });
+
+  server.on('error', function (err) {
+    console.error(err);
   });
 
   server.listen(port, () => {
