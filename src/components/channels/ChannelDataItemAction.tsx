@@ -5,11 +5,11 @@ import { ChannelDataItemDrawer } from './ChannelDataItemDrawer';
 import { Row } from 'react-table';
 
 export const ChannelDataItemAction = ({
-  value: { channel },
+  value: { channelKey },
   row: { original: item },
 }: {
   value: {
-    channel: Channel;
+    channelKey: string;
   };
   row: Row<EditableDataItem>;
 }) => {
@@ -21,7 +21,7 @@ export const ChannelDataItemAction = ({
       onUpdate={async (updatedItem) => {
         const newItem = marshall(updatedItem);
         await updateMutation.mutateAsync({
-          key: channel.key,
+          key: channelKey,
           data: {
             data: Object.assign(
               { [item.name]: undefined },
@@ -32,7 +32,7 @@ export const ChannelDataItemAction = ({
       }}
       onDelete={async () => {
         await updateMutation.mutateAsync({
-          key: channel.key,
+          key: channelKey,
           data: {
             data: {
               [item.name]: undefined,

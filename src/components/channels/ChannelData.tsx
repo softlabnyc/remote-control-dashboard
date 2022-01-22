@@ -1,7 +1,7 @@
 import { trpc } from '@/utils/trpc';
 import { Stack } from '@chakra-ui/react';
 import { Channel, Prisma } from '@prisma/client';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { JSONObject } from 'superjson/dist/types';
 import { TableContent } from '../TableContent';
 import { useErrorToast } from '../useErrorToast';
@@ -20,14 +20,43 @@ import {
 } from '@/lib/dataItem';
 import { ChannelDataItemAction } from './ChannelDataItemAction';
 
-const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
-  const [channel, setChannel] = useState(initialChannel);
-  trpc.useSubscription(['channel.onUpdate', channel.key], {
-    onNext(channel) {
-      setChannel(channel);
-    },
-  });
+const ChannelDataTable = ({ channel }: { channel: Channel }) => {
   const updateMutation = trpc.useMutation(['channel.update']);
+
+  const columns = useMemo(
+    () => [
+      {
+        Header: 'Name',
+        accessor: (row: EditableDataItem) => row.name,
+        id: 'property',
+        Cell: ChannelDataItemName,
+      },
+      {
+        Header: 'Value',
+        id: 'value',
+        accessor: (row: EditableDataItem) => row.value,
+        Cell: ChannelDataItemValue,
+      },
+      {
+        Header: 'Type',
+        id: 'type',
+        accessor: (row: EditableDataItem) => row.type,
+        Cell: ChannelDataItemType,
+      },
+      {
+        id: 'action',
+        accessor: (row: EditableDataItem) => ({ channelKey: channel.key }),
+        Cell: ChannelDataItemAction,
+      },
+    ],
+    [channel.key]
+  );
+
+  const data = useMemo(
+    () =>
+      fromData(sortObject(channel.data as Prisma.JsonObject)).map(unmarshall),
+    [channel.data]
+  );
 
   return (
     <Stack spacing={4}>
@@ -49,38 +78,24 @@ const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
           />
         }
       />
-      <TableContent
-        columns={[
-          {
-            Header: 'Name',
-            accessor: (row: EditableDataItem) => row.name,
-            id: 'property',
-            Cell: ChannelDataItemName,
-          },
-          {
-            Header: 'Value',
-            id: 'value',
-            accessor: (row: EditableDataItem) => row.value,
-            Cell: ChannelDataItemValue,
-          },
-          {
-            Header: 'Type',
-            id: 'type',
-            accessor: (row: EditableDataItem) => row.type,
-            Cell: ChannelDataItemType,
-          },
-          {
-            id: 'action',
-            accessor: (row: EditableDataItem) => ({ channel }),
-            Cell: ChannelDataItemAction,
-          },
-        ]}
-        data={fromData(sortObject(channel.data as Prisma.JsonObject)).map(
-          unmarshall
-        )}
-      />
+      <TableContent columns={columns} data={data} />
     </Stack>
   );
+};
+
+const ChannelDataSubscription = ({
+  initialChannel,
+}: {
+  initialChannel: Channel;
+}) => {
+  const [channel, setChannel] = useState(initialChannel);
+  trpc.useSubscription(['channel.onUpdate', channel.key], {
+    onNext(channel) {
+      setChannel(channel);
+    },
+  });
+
+  return <ChannelDataTable channel={channel} />;
 };
 
 export const ChannelData = ({ channelKey }: { channelKey: string }) => {
@@ -91,6 +106,6 @@ export const ChannelData = ({ channelKey }: { channelKey: string }) => {
   useErrorToast(error);
 
   return initialChannel ? (
-    <ChannelDataInner initialChannel={initialChannel} />
+    <ChannelDataSubscription initialChannel={initialChannel} />
   ) : null;
 };
