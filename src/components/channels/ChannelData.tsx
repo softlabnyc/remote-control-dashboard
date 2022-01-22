@@ -34,7 +34,7 @@ const ChannelDataTable = ({ channel }: { channel: Channel }) => {
       {
         Header: 'Value',
         id: 'value',
-        accessor: (row: EditableDataItem) => row.value,
+        accessor: (row: EditableDataItem) => row.editableValue,
         Cell: ChannelDataItemValue,
       },
       {

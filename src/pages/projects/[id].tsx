@@ -107,7 +107,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const project = await ssg.fetchQuery('project.find', id);
   const channelKey = project.channel!.key;
-  await ssg.fetchQuery('channel.read', channelKey);
 
   return {
     props: {

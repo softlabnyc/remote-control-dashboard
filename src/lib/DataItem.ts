@@ -7,60 +7,94 @@ export interface DataItem {
 
 export interface EditableDataItem {
   name: string;
-  value: string | number | boolean | null;
-  type: 'number' | 'boolean' | 'string' | 'object' | 'null';
+  value: Prisma.JsonValue;
+  type: 'number' | 'boolean' | 'string' | 'object' | 'array' | 'null';
+  editableValue: string | number | boolean | null;
+  editableType: 'number' | 'boolean' | 'string' | 'object' | 'null';
+}
+
+export interface CastDataItem {
+  name: string;
+  editableValue: string | number | boolean | null;
+  editableType: 'number' | 'boolean' | 'string' | 'object' | 'null';
 }
 
 export const unmarshall = ({ name, value }: DataItem): EditableDataItem => {
   if (value === null) {
     return {
       name,
-      value: null,
+      value,
       type: 'null',
+      editableValue: null,
+      editableType: 'null',
     };
   }
   switch (typeof value) {
     case 'number':
       return {
         name,
-        value: String(value),
+        value,
         type: 'number',
+        editableValue: String(value),
+        editableType: 'number',
       };
     case 'boolean':
       return {
         name,
-        value: String(value),
+        value,
         type: 'boolean',
+        editableValue: String(value),
+        editableType: 'boolean',
       };
-    case 'string':
-      return {
-        name,
-        value: value,
-        type: 'string',
-      };
-  }
-  return {
-    name,
-    value: JSON.stringify(value),
-    type: 'object',
-  };
-};
-
-export const marshall = ({ name, value, type }: EditableDataItem): DataItem => {
-  switch (type) {
-    case 'null':
-    case 'number':
-    case 'boolean':
     case 'string':
       return {
         name,
         value,
+        type: 'string',
+        editableValue: value,
+        editableType: 'string',
       };
   }
   return {
     name,
-    value: JSON.parse(value as string),
+    value,
+    type: Array.isArray(value) ? 'array' : 'object',
+    editableValue: JSON.stringify(value),
+    editableType: 'object',
   };
+};
+
+export const marshall = ({
+  name,
+  editableType,
+  editableValue,
+  value,
+}: EditableDataItem): DataItem => {
+  return {
+    name,
+    value,
+  };
+};
+
+export const fromCastDataItem = ({
+  name,
+  editableType,
+  editableValue,
+}: CastDataItem): EditableDataItem => {
+  switch (editableType) {
+    case 'null':
+    case 'number':
+    case 'boolean':
+    case 'string':
+      return unmarshall({
+        name,
+        value: editableValue,
+      });
+  }
+  return unmarshall({
+    name,
+    value: JSON.parse(editableValue as string),
+  });
 };
 
 export const fromData = (data: Prisma.JsonObject): DataItem[] =>

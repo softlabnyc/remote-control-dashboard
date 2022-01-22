@@ -27,44 +27,57 @@ export const TableContent = ({
   return (
     <Table my="8" borderWidth="1px" fontSize="sm" {...getTableProps()}>
       <Thead bg={mode('gray.50', 'gray.800')}>
-        {headerGroups.map((headerGroup) => (
-          <Tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-            {headerGroup.headers.map((column) => (
-              <Th
-                {...column.getHeaderProps(column.getSortByToggleProps())}
-                key={column.id}
-              >
-                {column.render('Header')}
-                <chakra.span pl="4">
-                  {column.isSorted ? (
-                    column.isSortedDesc ? (
-                      <HiArrowUp
-                        aria-label="sorted descending"
-                        style={{ display: 'inline' }}
-                      />
-                    ) : (
-                      <HiArrowDown
-                        aria-label="sorted ascending"
-                        style={{ display: 'inline' }}
-                      />
-                    )
-                  ) : null}
-                </chakra.span>
-              </Th>
-            ))}
-          </Tr>
-        ))}
+        {headerGroups.map((headerGroup, index) => {
+          return (
+            <Tr
+              {...headerGroup.getHeaderGroupProps()}
+              key={`${index}-${headerGroup.id}`}
+            >
+              {headerGroup.headers.map((column, index) => {
+                return (
+                  <React.Fragment key={`${index}-${column.id}`}>
+                    <Th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                    >
+                      {column.render('Header')}
+                      <chakra.span pl="4">
+                        {column.isSorted ? (
+                          column.isSortedDesc ? (
+                            <HiArrowUp
+                              aria-label="sorted descending"
+                              style={{ display: 'inline' }}
+                            />
+                          ) : (
+                            <HiArrowDown
+                              aria-label="sorted ascending"
+                              style={{ display: 'inline' }}
+                            />
+                          )
+                        ) : null}
+                      </chakra.span>
+                    </Th>
+                  </React.Fragment>
+                );
+              })}
+            </Tr>
+          );
+        })}
       </Thead>
       <Tbody {...getTableBodyProps()}>
         {rows.map((row) => {
           prepareRow(row);
           return (
             <Tr {...row.getRowProps()} key={row.id}>
-              {row.cells.map((cell) => (
-                <Td {...cell.getCellProps()} key={cell.value}>
-                  {cell.render('Cell')}
-                </Td>
-              ))}
+              {row.cells.map((cell) => {
+                return (
+                  <Td
+                    {...cell.getCellProps()}
+                    key={`${cell.column.id}-${cell.row.id}-${cell.value}`}
+                  >
+                    {cell.render('Cell')}
+                  </Td>
+                );
+              })}
             </Tr>
           );
         })}

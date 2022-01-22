@@ -30,7 +30,7 @@ export const ChannelDataItemType = ({
         </Badge>
       );
     case 'null':
-      <Badge colorScheme="red">Null</Badge>;
+      return <Badge colorScheme="red">Null</Badge>;
   }
   return (
     <Badge ml="1" colorScheme="purple">

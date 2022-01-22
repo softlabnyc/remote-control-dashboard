@@ -29,44 +29,60 @@ import { HiPencilAlt, HiPlus } from 'react-icons/hi';
 import * as Yup from 'yup';
 import { Prisma } from '@prisma/client';
 import { Item } from 'framer-motion/types/components/Reorder/Item';
-import { DataItem, EditableDataItem } from '@/lib/dataItem';
+import {
+  CastDataItem,
+  DataItem,
+  EditableDataItem,
+  fromCastDataItem,
+  marshall,
+  unmarshall,
+} from '@/lib/dataItem';
 
-const ChannelDataItemSchema = Yup.lazy((item) => {
+const ChannelDataItemSchema = Yup.lazy((item: EditableDataItem) => {
   const base = {
     name: Yup.string().required('Property name is required.'),
-    type: Yup.string().oneOf(
+    editableType: Yup.string().oneOf(
       ['boolean', 'number', 'string', 'object'],
-      'Value type must be String, Number, Boolean, Object, or Array.'
+      'Type of value must be String, Number, Boolean, Object, or Array.'
     ),
   };
-  switch (item.type) {
+  switch (item.editableType) {
     case 'boolean':
       return Yup.object({
         ...base,
-        value: Yup.boolean()
+        editableValue: Yup.boolean()
           .typeError('Value must be a boolean')
           .required('Boolean value is required'),
       });
     case 'number':
       return Yup.object({
         ...base,
-        value: Yup.number()
+        editableValue: Yup.number()
           .typeError('Value must be a number')
           .required('Number value is required'),
       });
     case 'string':
       return Yup.object({
         ...base,
-        value: Yup.string().required('String value is required'),
+        editableValue: Yup.string().required('String value is required'),
+      });
+    case 'null':
+      return Yup.object({
+        ...base,
+        editableValue: Yup.mixed().test(
+          'is-null',
+          'Value must be null',
+          (editableValue) => editableValue === null
+        ),
       });
   }
   return Yup.object({
     ...base,
-    value: Yup.string()
-      .test('is-valid-json', 'Value must be valid JSON', (value) => {
-        if (!value) return false;
+    editableValue: Yup.string()
+      .test('is-valid-json', 'Value must be valid JSON', (editableValue) => {
+        if (!editableValue) return false;
         try {
-          JSON.parse(value);
+          JSON.parse(editableValue);
           return true;
         } catch (error) {
           return false;
@@ -97,12 +113,16 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
 
   const [isDeleting, setIsDeleting] = React.useState(false);
 
-  const initialValues: EditableDataItem =
+  const initialValues: {
+    name: EditableDataItem['name'];
+    editableValue: EditableDataItem['editableValue'];
+    editableType: EditableDataItem['editableType'];
+  } =
     props.mode == 'create'
       ? {
           name: '',
-          value: '',
-          type: 'string',
+          editableValue: '',
+          editableType: 'string',
         }
       : props.item;
 
@@ -143,9 +163,11 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
           <Formik
             initialValues={initialValues}
             validationSchema={ChannelDataItemSchema}
-            onSubmit={async (item, { setSubmitting }) => {
+            onSubmit={async (values, { setSubmitting }) => {
               try {
-                item = ChannelDataItemSchema.cast(item) as EditableDataItem;
+                const item = fromCastDataItem(
+                  ChannelDataItemSchema.cast(values) as CastDataItem
+                );
                 await onSubmit(item);
                 onClose();
               } catch (error) {
@@ -161,30 +183,32 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
               }
             }}
           >
-            {({ errors, touched, isSubmitting }) => (
+            {({ errors, touched, isSubmitting, values }) => (
               <Form>
                 <DrawerBody>
                   <Stack spacing="24px">
                     {props.mode == 'create' && (
-                      <Field name="type">
+                      <Field name="editableType">
                         {({ field }: FieldProps<string>) => (
                           <FormControl
-                            isInvalid={!!(errors.type && touched.type)}
+                            isInvalid={
+                              !!(errors.editableType && touched.editableType)
+                            }
                           >
-                            <FormLabel htmlFor="property">Property</FormLabel>
-                            <Select {...field} id="type">
+                            <FormLabel htmlFor="editableType">Type</FormLabel>
+                            <Select {...field} id="editableType">
                               <option value="string">String</option>
                               <option value="number">Number</option>
                               <option value="boolean">Boolean</option>
                               <option value="object">Object or Array</option>
                             </Select>
-                            {errors.type && touched.type ? (
+                            {errors.editableType && touched.editableType ? (
                               <FormErrorMessage lineHeight={'normal'}>
-                                {errors.type}
+                                {errors.editableType}
                               </FormErrorMessage>
                             ) : (
                               <FormHelperText>
-                                Choose a value type.
+                                Choose a type for the value.
                               </FormHelperText>
                             )}
                           </FormControl>
@@ -210,23 +234,27 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
                         </FormControl>
                       )}
                     </Field>
-                    <Field name="value">
-                      {({ field }: FieldProps<string>) => (
-                        <FormControl
-                          isInvalid={!!(errors.value && touched.value)}
-                        >
-                          <FormLabel htmlFor="value">Value</FormLabel>
-                          <Input {...field} id="value" />
-                          {errors.value && touched.value ? (
-                            <FormErrorMessage lineHeight={'normal'}>
-                              {errors.value}
-                            </FormErrorMessage>
-                          ) : (
-                            <FormHelperText>Enter the value.</FormHelperText>
-                          )}
-                        </FormControl>
-                      )}
-                    </Field>
+                    {values.editableType !== 'null' && (
+                      <Field name="editableValue">
+                        {({ field }: FieldProps<string>) => (
+                          <FormControl
+                            isInvalid={
+                              !!(errors.editableValue && touched.editableValue)
+                            }
+                          >
+                            <FormLabel htmlFor="editableValue">Value</FormLabel>
+                            <Input {...field} id="editableValue" />
+                            {errors.editableValue && touched.editableValue ? (
+                              <FormErrorMessage lineHeight={'normal'}>
+                                {errors.editableValue}
+                              </FormErrorMessage>
+                            ) : (
+                              <FormHelperText>Enter the value.</FormHelperText>
+                            )}
+                          </FormControl>
+                        )}
+                      </Field>
+                    )}
                   </Stack>
                 </DrawerBody>
                 <DrawerFooter borderTopWidth="1px">

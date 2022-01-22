@@ -1,13 +1,14 @@
 import { EditableDataItem } from '@/lib/dataItem';
 import { Badge, Code } from '@chakra-ui/react';
+import { Row } from 'react-table';
 import { Prisma } from '@prisma/client';
 
 export const ChannelDataItemValue = ({
   value,
-  row: item,
+  row: { original: item },
 }: {
-  value: EditableDataItem['value'];
-  row: EditableDataItem;
+  value: EditableDataItem['editableValue'];
+  row: Row<EditableDataItem>;
 }) => {
   switch (item.type) {
     case 'string':
@@ -18,6 +19,8 @@ export const ChannelDataItemValue = ({
           {'"'}
         </Code>
       );
+    case 'null':
+      return <Code>null</Code>;
   }
   return <Code>{value}</Code>;
 };
