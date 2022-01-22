@@ -1,10 +1,15 @@
+import { EditableDataItem } from '@/lib/dataItem';
 import { Badge, Code } from '@chakra-ui/react';
 import { Prisma } from '@prisma/client';
 
-export const ChannelDataItemValue = (value: Prisma.JsonValue) => {
-  switch (typeof value) {
-    case 'number':
-      return <Code>{value}</Code>;
+export const ChannelDataItemValue = ({
+  value,
+  row: item,
+}: {
+  value: EditableDataItem['value'];
+  row: EditableDataItem;
+}) => {
+  switch (item.type) {
     case 'string':
       return (
         <Code>
@@ -13,9 +18,6 @@ export const ChannelDataItemValue = (value: Prisma.JsonValue) => {
           {'"'}
         </Code>
       );
-    case 'boolean':
-      return <Code>{value ? 'true' : 'false'}</Code>;
   }
-  if (value === null) return <Code>null</Code>;
-  return <Code>{JSON.stringify(value)}</Code>;
+  return <Code>{value}</Code>;
 };

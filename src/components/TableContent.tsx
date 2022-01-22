@@ -1,5 +1,6 @@
 import {
   Button,
+  chakra,
   Table,
   Tbody,
   Td,
@@ -8,47 +9,62 @@ import {
   Tr,
   useColorModeValue as mode,
 } from '@chakra-ui/react';
+import { HiArrowUp, HiArrowDown } from 'react-icons/hi';
 import * as React from 'react';
+import { useTable, useSortBy, Column, TableState } from 'react-table';
+import { EditableDataItem } from '@/lib/dataItem';
 
 export const TableContent = ({
   columns,
   data,
-  Action,
 }: {
-  columns: {
-    header: string;
-    accessor: string;
-    Cell?: (data: any) => JSX.Element;
-  }[];
+  columns: Column<EditableDataItem>[];
   data: any[];
-  Action?: (row: any) => JSX.Element;
 }) => {
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
+    useTable<EditableDataItem>({ columns, data }, useSortBy);
+
   return (
-    <Table my="8" borderWidth="1px" fontSize="sm">
+    <Table my="8" borderWidth="1px" fontSize="sm" {...getTableProps()}>
       <Thead bg={mode('gray.50', 'gray.800')}>
-        <Tr>
-          {columns.map((column, index) => (
-            <Th whiteSpace="nowrap" scope="col" key={index}>
-              {column.header}
-            </Th>
-          ))}
-          <Th />
-        </Tr>
+        {headerGroups.map((headerGroup) => (
+          <Tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+            {headerGroup.headers.map((column) => (
+              <Th
+                {...column.getHeaderProps(column.getSortByToggleProps())}
+                key={column.id}
+              >
+                {column.render('Header')}
+                <chakra.span pl="4">
+                  {column.isSorted ? (
+                    column.isSortedDesc ? (
+                      <HiArrowUp
+                        aria-label="sorted descending"
+                        style={{ display: 'inline' }}
+                      />
+                    ) : (
+                      <HiArrowDown
+                        aria-label="sorted ascending"
+                        style={{ display: 'inline' }}
+                      />
+                    )
+                  ) : null}
+                </chakra.span>
+              </Th>
+            ))}
+          </Tr>
+        ))}
       </Thead>
-      <Tbody>
-        {data.map((row, index) => {
+      <Tbody {...getTableBodyProps()}>
+        {rows.map((row) => {
+          prepareRow(row);
           return (
-            <Tr key={index}>
-              {columns.map((column, index) => {
-                const cell = row[column.accessor as keyof typeof row];
-                const element = column.Cell?.(cell) ?? cell;
-                return (
-                  <Td whiteSpace="nowrap" key={index}>
-                    {element}
-                  </Td>
-                );
-              })}
-              {Action && <Td textAlign="right">{Action?.(row)}</Td>}
+            <Tr {...row.getRowProps()} key={row.id}>
+              {row.cells.map((cell) => (
+                <Td {...cell.getCellProps()} key={cell.value}>
+                  {cell.render('Cell')}
+                </Td>
+              ))}
             </Tr>
           );
         })}

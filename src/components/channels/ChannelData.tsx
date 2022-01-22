@@ -6,11 +6,19 @@ import { JSONObject } from 'superjson/dist/types';
 import { TableContent } from '../TableContent';
 import { useErrorToast } from '../useErrorToast';
 import { ChannelDataItemDrawer } from './ChannelDataItemDrawer';
-import { ChannelDataItemProperty } from './ChannelDataItemProperty';
+import { ChannelDataItemName } from './ChannelDataItemName';
 import { ChannelDataItemType } from './ChannelDataItemType';
 import { ChannelDataItemValue } from './ChannelDataItemValue';
 import { ChannelDataTableActions } from './ChannelDataTableHeader';
 import sortObject from 'sort-object-keys';
+import {
+  DataItem,
+  EditableDataItem,
+  fromData,
+  marshall,
+  unmarshall,
+} from '@/lib/dataItem';
+import { ChannelDataItemAction } from './ChannelDataItemAction';
 
 const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
   const [channel, setChannel] = useState(initialChannel);
@@ -27,12 +35,13 @@ const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
         action={
           <ChannelDataItemDrawer
             mode="create"
-            onCreate={async ({ property, value }) => {
+            onCreate={async (item) => {
+              const newItem = marshall(item);
               await updateMutation.mutateAsync({
                 key: channel.key,
                 data: {
                   data: {
-                    [property]: value,
+                    [newItem.name]: newItem.value,
                   },
                 },
               });
@@ -43,54 +52,32 @@ const ChannelDataInner = ({ initialChannel }: { initialChannel: Channel }) => {
       <TableContent
         columns={[
           {
-            header: 'Property',
-            accessor: '0',
-            Cell: ChannelDataItemProperty,
+            Header: 'Name',
+            accessor: (row: EditableDataItem) => row.name,
+            id: 'property',
+            Cell: ChannelDataItemName,
           },
           {
-            header: 'Value',
-            accessor: '1',
+            Header: 'Value',
+            id: 'value',
+            accessor: (row: EditableDataItem) => row.value,
             Cell: ChannelDataItemValue,
           },
           {
-            header: 'Type',
-            accessor: '1',
+            Header: 'Type',
+            id: 'type',
+            accessor: (row: EditableDataItem) => row.type,
             Cell: ChannelDataItemType,
           },
+          {
+            id: 'action',
+            accessor: (row: EditableDataItem) => ({ channel }),
+            Cell: ChannelDataItemAction,
+          },
         ]}
-        data={Object.entries(sortObject(channel.data as JSONObject))}
-        Action={function ActionCell([property, value]: [
-          property: string,
-          value: Prisma.JsonValue
-        ]) {
-          return (
-            <ChannelDataItemDrawer
-              mode="edit"
-              values={{ property, value }}
-              onUpdate={async ({ property: newProperty, value: newValue }) => {
-                await updateMutation.mutateAsync({
-                  key: channel.key,
-                  data: {
-                    data: Object.assign(
-                      { [property]: undefined },
-                      { [newProperty]: newValue }
-                    ),
-                  },
-                });
-              }}
-              onDelete={async () => {
-                await updateMutation.mutateAsync({
-                  key: channel.key,
-                  data: {
-                    data: {
-                      [property]: undefined,
-                    },
-                  },
-                });
-              }}
-            />
-          );
-        }}
+        data={fromData(sortObject(channel.data as Prisma.JsonObject)).map(
+          unmarshall
+        )}
       />
     </Stack>
   );

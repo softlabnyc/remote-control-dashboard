@@ -29,10 +29,11 @@ import { HiPencilAlt, HiPlus } from 'react-icons/hi';
 import * as Yup from 'yup';
 import { Prisma } from '@prisma/client';
 import { Item } from 'framer-motion/types/components/Reorder/Item';
+import { DataItem, EditableDataItem } from '@/lib/dataItem';
 
 const ChannelDataItemSchema = Yup.lazy((item) => {
   const base = {
-    property: Yup.string().required('Property name is required.'),
+    name: Yup.string().required('Property name is required.'),
     type: Yup.string().oneOf(
       ['boolean', 'number', 'string', 'object'],
       'Value type must be String, Number, Boolean, Object, or Array.'
@@ -75,47 +76,17 @@ const ChannelDataItemSchema = Yup.lazy((item) => {
   });
 });
 
-type ChannelDataItem = {
-  property: string;
-  value: Prisma.JsonValue;
-};
-
 type ChannelDataItemDrawerProps =
   | {
       mode: 'create';
-      onCreate: (values: ChannelDataItem) => Promise<void>;
+      onCreate: (item: EditableDataItem) => Promise<void>;
     }
   | {
       mode: 'edit';
-      values: ChannelDataItem;
-      onUpdate: (values: ChannelDataItem) => Promise<void>;
+      item: EditableDataItem;
+      onUpdate: (item: EditableDataItem) => Promise<void>;
       onDelete: () => Promise<void>;
     };
-
-function castChannelDataItem(item: ChannelDataItem) {
-  switch (typeof item.value) {
-    case 'number':
-      return {
-        ...item,
-        type: 'number',
-      };
-    case 'boolean':
-      return {
-        ...item,
-        type: 'boolean',
-      };
-    case 'string':
-      return {
-        ...item,
-        type: 'string',
-      };
-  }
-  return {
-    ...item,
-    value: JSON.stringify(item.value),
-    type: 'object',
-  };
-}
 
 export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -126,18 +97,14 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
 
   const [isDeleting, setIsDeleting] = React.useState(false);
 
-  const initialValues =
+  const initialValues: EditableDataItem =
     props.mode == 'create'
       ? {
-          property: '',
+          name: '',
           value: '',
           type: 'string',
         }
-      : {
-          property: castChannelDataItem(props.values).property,
-          value: castChannelDataItem(props.values).value,
-          type: castChannelDataItem(props.values).type,
-        };
+      : props.item;
 
   return (
     <>
@@ -176,16 +143,10 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
           <Formik
             initialValues={initialValues}
             validationSchema={ChannelDataItemSchema}
-            onSubmit={async (values, { setSubmitting }) => {
+            onSubmit={async (item, { setSubmitting }) => {
               try {
-                const item = ChannelDataItemSchema.cast(values);
-                await onSubmit({
-                  property: item.property!,
-                  value:
-                    item.type === 'object'
-                      ? JSON.parse(item.value as string)
-                      : item.value,
-                });
+                item = ChannelDataItemSchema.cast(item) as EditableDataItem;
+                await onSubmit(item);
                 onClose();
               } catch (error) {
                 if (error instanceof Error) {
@@ -230,20 +191,16 @@ export const ChannelDataItemDrawer = (props: ChannelDataItemDrawerProps) => {
                         )}
                       </Field>
                     )}
-                    <Field name="property">
+                    <Field name="name">
                       {({ field }: FieldProps<string>) => (
                         <FormControl
-                          isInvalid={!!(errors.property && touched.property)}
+                          isInvalid={!!(errors.name && touched.name)}
                         >
-                          <FormLabel htmlFor="property">Property</FormLabel>
-                          <Input
-                            {...field}
-                            id="property"
-                            placeholder="my_value"
-                          />
-                          {errors.property && touched.property ? (
+                          <FormLabel htmlFor="name">Name</FormLabel>
+                          <Input {...field} id="name" placeholder="my_value" />
+                          {errors.name && touched.name ? (
                             <FormErrorMessage lineHeight={'normal'}>
-                              {errors.property}
+                              {errors.name}
                             </FormErrorMessage>
                           ) : (
                             <FormHelperText>
