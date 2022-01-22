@@ -36,7 +36,7 @@ import {
   fromCastDataItem,
   marshall,
   unmarshall,
-} from '@/lib/dataItem';
+} from '@/lib/DataItem';
 
 const ChannelDataItemSchema = Yup.lazy((item: EditableDataItem) => {
   const base = {

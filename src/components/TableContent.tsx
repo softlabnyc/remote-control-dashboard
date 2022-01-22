@@ -12,7 +12,7 @@ import {
 import { HiArrowUp, HiArrowDown } from 'react-icons/hi';
 import * as React from 'react';
 import { useTable, useSortBy, Column, TableState } from 'react-table';
-import { EditableDataItem } from '@/lib/dataItem';
+import { EditableDataItem } from '@/lib/DataItem';
 
 export const TableContent = ({
   columns,

@@ -17,7 +17,7 @@ import {
   fromData,
   marshall,
   unmarshall,
-} from '@/lib/dataItem';
+} from '@/lib/DataItem';
 import { ChannelDataItemAction } from './ChannelDataItemAction';
 
 const ChannelDataTable = ({ channel }: { channel: Channel }) => {

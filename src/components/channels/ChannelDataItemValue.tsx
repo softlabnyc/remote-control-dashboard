@@ -1,4 +1,4 @@
-import { EditableDataItem } from '@/lib/dataItem';
+import { EditableDataItem } from '@/lib/DataItem';
 import { Badge, Code } from '@chakra-ui/react';
 import { Row } from 'react-table';
 import { Prisma } from '@prisma/client';

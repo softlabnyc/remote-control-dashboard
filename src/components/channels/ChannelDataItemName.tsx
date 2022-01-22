@@ -1,4 +1,4 @@
-import { EditableDataItem } from '@/lib/dataItem';
+import { EditableDataItem } from '@/lib/DataItem';
 import { Prisma } from '@prisma/client';
 
 export const ChannelDataItemName = ({

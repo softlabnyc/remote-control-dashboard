@@ -1,4 +1,4 @@
-import { EditableDataItem, marshall } from '@/lib/dataItem';
+import { EditableDataItem, marshall } from '@/lib/DataItem';
 import { trpc } from '@/utils/trpc';
 import { Channel } from '@prisma/client';
 import { ChannelDataItemDrawer } from './ChannelDataItemDrawer';
