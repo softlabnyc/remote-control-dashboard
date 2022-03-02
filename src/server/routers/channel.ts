@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 const prisma = new PrismaClient();
 
 interface ChannelEvents {
-  update: (key: string, data: Channel) => void;
+  update: (key: string, data: Channel, uuid?: string) => void;
 }
 
 declare interface ChannelEventEmitter {
@@ -27,12 +27,12 @@ class ChannelEventEmitter extends EventEmitter {}
 const ee = new ChannelEventEmitter();
 
 export const channelRouter = createRouter()
-  .middleware(async ({ ctx, next }) => {
-    if (!ctx.session) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-    return next();
-  })
+  // .middleware(async ({ ctx, next }) => {
+  //   if (!ctx.session) {
+  //     throw new TRPCError({ code: 'UNAUTHORIZED' });
+  //   }
+  //   return next();
+  // })
   .query('read', {
     input: Yup.string().matches(new RegExp('^[A-Za-z0-9-_.~]*$')).required(),
     async resolve({ ctx, input: key }) {
@@ -54,9 +54,10 @@ export const channelRouter = createRouter()
       data: Yup.object({
         data: Yup.mixed().optional(),
       }).noUnknown(),
+      uuid: Yup.string(),
     }),
     async resolve({ ctx, input }) {
-      const { key, data } = input;
+      const { key, data, uuid } = input;
       const updatedChannel = await prisma.$transaction(async (prisma) => {
         const channel = await prisma.channel.findUnique({
           where: { key },
@@ -91,15 +92,20 @@ export const channelRouter = createRouter()
         });
         return updatedChannel;
       });
-      ee.emit('update', key, updatedChannel);
+      ee.emit('update', key, updatedChannel, uuid);
       return updatedChannel;
     },
   })
   .subscription('onUpdate', {
-    input: Yup.string().matches(new RegExp('^[A-Za-z0-9-_.~]*$')).required(),
-    resolve({ ctx, input: key }) {
+    input: Yup.object({
+      key: Yup.string().matches(new RegExp('^[A-Za-z0-9-_.~]*$')).required(),
+      uuid: Yup.string(),
+    }),
+    resolve({ ctx, input }) {
+      const { key, uuid } = input;
       return new Subscription<Channel>((emit) => {
-        const handleUpdate = (k: string, data: Channel) => {
+        const handleUpdate = (k: string, data: Channel, id?: string) => {
+          if (typeof uuid !== 'undefined' && uuid === id) return;
           if (key === k) emit.data(data);
         };
 

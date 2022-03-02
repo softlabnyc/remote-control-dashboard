@@ -11,9 +11,19 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
-  const server = createServer((req, res) =>
-    handle(req, res, parse(req.url, true))
-  );
+  const server = createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Request-Method', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200);
+      res.end();
+      return;
+    }
+
+    handle(req, res, parse(req.url, true));
+  });
   const wss = new WebSocketServer({ noServer: true });
   const handler = createWSSHandler(wss);
 

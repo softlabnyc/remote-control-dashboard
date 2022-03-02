@@ -89,7 +89,7 @@ const ChannelDataSubscription = ({
   initialChannel: Channel;
 }) => {
   const [channel, setChannel] = useState(initialChannel);
-  trpc.useSubscription(['channel.onUpdate', channel.key], {
+  trpc.useSubscription(['channel.onUpdate', { key: channel.key }], {
     onNext(channel) {
       setChannel(channel);
     },
