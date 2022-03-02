@@ -49,13 +49,13 @@ const ChannelDataTable = ({ channel }: { channel: Channel }) => {
         Cell: ChannelDataItemAction,
       },
     ],
-    [channel.key]
+    [channel]
   );
 
   const data = useMemo(
     () =>
       fromData(sortObject(channel.data as Prisma.JsonObject)).map(unmarshall),
-    [channel.data]
+    [channel]
   );
 
   return (
@@ -90,8 +90,11 @@ const ChannelDataSubscription = ({
 }) => {
   const [channel, setChannel] = useState(initialChannel);
   trpc.useSubscription(['channel.onUpdate', { key: channel.key }], {
-    onNext(channel) {
-      setChannel(channel);
+    onNext(data) {
+      setChannel((channel) => ({
+        ...channel,
+        data: Object.assign(channel.data, data.data),
+      }));
     },
   });
 

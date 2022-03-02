@@ -4,10 +4,15 @@ import { Subscription, TRPCError } from '@trpc/server';
 import { nanoid } from 'nanoid';
 import { PrismaClient, Channel, Prisma } from '@prisma/client';
 import { EventEmitter } from 'events';
+import debounce from 'lodash/debounce';
 const prisma = new PrismaClient();
 
 interface ChannelEvents {
-  update: (key: string, data: Channel, uuid?: string) => void;
+  update: (
+    key: string,
+    data: { data: Prisma.JsonObject },
+    uuid?: string
+  ) => void;
 }
 
 declare interface ChannelEventEmitter {
@@ -25,6 +30,49 @@ declare interface ChannelEventEmitter {
 class ChannelEventEmitter extends EventEmitter {}
 
 const ee = new ChannelEventEmitter();
+
+const updateChannel = async (
+  key: string,
+  data: { data: Prisma.JsonObject },
+  uuid: string | undefined
+) => {
+  return await prisma.$transaction(async (prisma) => {
+    const channel = await prisma.channel.findUnique({
+      where: { key },
+    });
+    if (!channel) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: `No channel with key '${key}'`,
+      });
+    }
+    if (
+      !channel.data ||
+      typeof channel.data !== 'object' ||
+      Array.isArray(channel.data)
+    ) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Channel data in unexpected form for key '${key}'`,
+      });
+    }
+    const updatedData = Object.assign(
+      {},
+      channel.data as Prisma.JsonObject,
+      data.data
+    );
+    const updatedChannel = await prisma.channel.update({
+      where: { key },
+      data: {
+        lastUpdated: new Date(),
+        data: updatedData,
+      },
+    });
+    return updatedChannel;
+  });
+};
+
+const debouncedUpdateChannel = debounce(updateChannel, 1000);
 
 export const channelRouter = createRouter()
   // .middleware(async ({ ctx, next }) => {
@@ -52,48 +100,21 @@ export const channelRouter = createRouter()
     input: Yup.object({
       key: Yup.string().matches(new RegExp('^[A-Za-z0-9-_.~]*$')).required(),
       data: Yup.object({
-        data: Yup.mixed().optional(),
+        data: Yup.mixed(),
       }).noUnknown(),
       uuid: Yup.string(),
     }),
     async resolve({ ctx, input }) {
-      const { key, data, uuid } = input;
-      const updatedChannel = await prisma.$transaction(async (prisma) => {
-        const channel = await prisma.channel.findUnique({
-          where: { key },
-        });
-        if (!channel) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: `No channel with key '${key}'`,
-          });
-        }
-        if (
-          !channel.data ||
-          typeof channel.data !== 'object' ||
-          Array.isArray(channel.data)
-        ) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: `Channel data in unexpected form for key '${key}'`,
-          });
-        }
-        const updatedData = Object.assign(
-          {},
-          channel.data as Prisma.JsonObject,
-          data.data
-        );
-        const updatedChannel = await prisma.channel.update({
-          where: { key },
-          data: {
-            lastUpdated: new Date(),
-            data: updatedData,
-          },
-        });
-        return updatedChannel;
-      });
-      ee.emit('update', key, updatedChannel, uuid);
-      return updatedChannel;
+      const { key, data, uuid } = input as {
+        key: string;
+        data: {
+          data: Prisma.JsonObject;
+        };
+        uuid?: string;
+      };
+      ee.emit('update', key, data, uuid);
+      debouncedUpdateChannel(key, data, uuid);
+      return input;
     },
   })
   .subscription('onUpdate', {
@@ -103,8 +124,12 @@ export const channelRouter = createRouter()
     }),
     resolve({ ctx, input }) {
       const { key, uuid } = input;
-      return new Subscription<Channel>((emit) => {
-        const handleUpdate = (k: string, data: Channel, id?: string) => {
+      return new Subscription<{ data: Prisma.JsonObject }>((emit) => {
+        const handleUpdate = (
+          k: string,
+          data: { data: Prisma.JsonObject },
+          id?: string
+        ) => {
           if (typeof uuid !== 'undefined' && uuid === id) return;
           if (key === k) emit.data(data);
         };
