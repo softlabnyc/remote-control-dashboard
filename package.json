@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "ts-node --project tsconfig.server.json --files server.ts",
     "lint": "next lint",
-    "build": "next build",
-    "start": "cross-env NODE_ENV=production ts-node --project tsconfig.server.json --files server.ts",
+    "build": "next build && tsc --project tsconfig.server.json",
+    "start": "cross-env NODE_ENV=production node dist/server.js",
     "prepare": "husky install",
     "declaration": "tsc --declaration --emitDeclarationOnly --project tsconfig.server.json",
     "migrate": "prisma migrate deploy"
