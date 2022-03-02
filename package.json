@@ -7,7 +7,8 @@
     "lint": "next lint",
     "build": "next build",
     "start": "cross-env NODE_ENV=production ts-node --project tsconfig.server.json --files server.ts",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "declaration": "tsc --declaration --emitDeclarationOnly --project tsconfig.server.json"
   },
   "dependencies": {
     "@chakra-ui/react": "^1.7.3",
