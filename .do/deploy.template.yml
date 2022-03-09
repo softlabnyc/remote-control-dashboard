@@ -1,0 +1,79 @@
+spec:
+  name: remote-control-dashboard
+  alerts:
+    - rule: DEPLOYMENT_FAILED
+    - rule: DOMAIN_FAILED
+  databases:
+    - name: db
+      engine: PG
+      num_nodes: 1
+      size: db-s-dev-database
+      version: '12'
+  envs:
+    - key: APP_URL
+      scope: RUN_AND_BUILD_TIME
+      value: ${APP_URL}
+    - key: WS_URL
+      scope: RUN_AND_BUILD_TIME
+      value: wss://${APP_DOMAIN}
+    - key: NEXTAUTH_URL
+      scope: RUN_AND_BUILD_TIME
+      value: ${APP_URL}
+    - key: SECRET
+      scope: RUN_AND_BUILD_TIME
+      type: SECRET
+      value: my_secret_password
+    - key: SMTP_HOST
+      scope: RUN_AND_BUILD_TIME
+      value: smtp.sendgrid.net
+    - key: SMTP_PORT
+      scope: RUN_AND_BUILD_TIME
+      value: '587'
+    - key: SMTP_USER
+      scope: RUN_AND_BUILD_TIME
+      value: apikey
+    - key: SMTP_PASSWORD
+      scope: RUN_AND_BUILD_TIME
+      type: SECRET
+      value: 123abcpassword
+    - key: SMTP_FROM
+      scope: RUN_AND_BUILD_TIME
+      type: SECRET
+      value: noreply@example.com
+  jobs:
+    - name: migrate
+      build_command: npm run build
+      environment_slug: node-js
+      envs:
+        - key: DATABASE_URL
+          scope: RUN_TIME
+          value: ${db.DATABASE_URL}
+      github:
+        branch: main
+        deploy_on_push: true
+        repo: alotofmovingparts/remote-control-dashboard
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      kind: PRE_DEPLOY
+      run_command: npm run migrate
+      source_dir: /
+  region: nyc
+  services:
+    - name: web
+      build_command: npm run build
+      environment_slug: node-js
+      envs:
+        - key: DATABASE_URL
+          scope: RUN_TIME
+          value: ${db.DATABASE_URL}
+      github:
+        branch: main
+        deploy_on_push: true
+        repo: alotofmovingparts/remote-control-dashboard
+      http_port: 8080
+      instance_count: 1
+      instance_size_slug: basic-xs
+      routes:
+        - path: /
+      run_command: npm start
+      source_dir: /
