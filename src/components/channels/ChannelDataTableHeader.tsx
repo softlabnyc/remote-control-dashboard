@@ -15,11 +15,7 @@ import * as React from 'react';
 import { BsSearch } from 'react-icons/bs';
 import { RiAddFill, RiArrowRightUpLine } from 'react-icons/ri';
 
-export const ChannelDataTableActions = ({
-  action,
-}: {
-  action?: React.ReactNode;
-}) => {
+export const ChannelDataTableHeader: React.FC = ({ children }) => {
   return (
     <HStack
       spacing="4"
@@ -27,7 +23,7 @@ export const ChannelDataTableActions = ({
       justify="space-between"
     >
       <Heading size="md">Project Data</Heading>
-      {action}
+      <div>{children}</div>
     </HStack>
   );
 };

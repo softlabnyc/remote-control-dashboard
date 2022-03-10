@@ -9,7 +9,7 @@ import { ChannelDataItemDrawer } from './ChannelDataItemDrawer';
 import { ChannelDataItemName } from './ChannelDataItemName';
 import { ChannelDataItemType } from './ChannelDataItemType';
 import { ChannelDataItemValue } from './ChannelDataItemValue';
-import { ChannelDataTableActions } from './ChannelDataTableHeader';
+import { ChannelDataTableHeader } from './ChannelDataTableHeader';
 import sortObject from 'sort-object-keys';
 import {
   DataItem,
@@ -60,24 +60,22 @@ const ChannelDataTable = ({ channel }: { channel: Channel }) => {
 
   return (
     <Stack spacing={4}>
-      <ChannelDataTableActions
-        action={
-          <ChannelDataItemDrawer
-            mode="create"
-            onCreate={async (item) => {
-              const newItem = marshall(item);
-              await updateMutation.mutateAsync({
-                key: channel.key,
+      <ChannelDataTableHeader>
+        <ChannelDataItemDrawer
+          mode="create"
+          onCreate={async (item) => {
+            const newItem = marshall(item);
+            await updateMutation.mutateAsync({
+              key: channel.key,
+              data: {
                 data: {
-                  data: {
-                    [newItem.name]: newItem.value,
-                  },
+                  [newItem.name]: newItem.value,
                 },
-              });
-            }}
-          />
-        }
-      />
+              },
+            });
+          }}
+        />
+      </ChannelDataTableHeader>
       <TableContent columns={columns} data={data} />
     </Stack>
   );

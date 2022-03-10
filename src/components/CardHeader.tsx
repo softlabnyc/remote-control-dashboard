@@ -1,8 +1,8 @@
 import { Flex, Heading } from '@chakra-ui/react';
 import * as React from 'react';
 
-export const CardHeader: React.FC<{ action?: React.ReactNode }> = ({
-  action,
+export const CardHeader: React.FC<{ title?: React.ReactNode }> = ({
+  title,
   children,
 }) => {
   return (
@@ -13,8 +13,8 @@ export const CardHeader: React.FC<{ action?: React.ReactNode }> = ({
       py="4"
       borderBottomWidth="1px"
     >
-      <Heading fontSize="lg">{children}</Heading>
-      {action}
+      <Heading fontSize="lg">{title}</Heading>
+      <div>{children}</div>
     </Flex>
   );
 };

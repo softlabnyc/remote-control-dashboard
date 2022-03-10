@@ -1,4 +1,4 @@
-import { Button, Code } from '@chakra-ui/react';
+import { Button, Code, HStack } from '@chakra-ui/react';
 import { Prisma, Project } from '@prisma/client';
 import Link from 'next/link';
 import { trpc } from '../../utils/trpc';
@@ -27,7 +27,16 @@ export const ProjectCard = ({ project }: { project: ProjectWithChannel }) => {
   return (
     <Card>
       <CardHeader
-        action={
+        title={
+          <Link href={`/projects/${project.id}`}>
+            <a>{project.name}</a>
+          </Link>
+        }
+      >
+        <HStack spacing="4" justify="space-between">
+          <Link href={`/projects/${project.id}`} passHref>
+            <Button as="a">View project</Button>
+          </Link>
           <ProjectDrawer
             mode="edit"
             values={project}
@@ -44,11 +53,7 @@ export const ProjectCard = ({ project }: { project: ProjectWithChannel }) => {
               await utils.invalidateQueries(['project.findAll']);
             }}
           />
-        }
-      >
-        <Link href={`/projects/${project.id}`}>
-          <a>{project.name}</a>
-        </Link>
+        </HStack>
       </CardHeader>
       <CardContent>
         <Property label="Client" value={project.client} />
