@@ -1,6 +1,6 @@
 # Remote Control Dashboard
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/alotofmovingparts/remote-control-dashboard/tree/main)
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/softlabnyc/remote-control-dashboard/tree/main)
 
 ## Getting Started
 
