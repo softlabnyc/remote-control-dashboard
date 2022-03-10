@@ -39,6 +39,9 @@ envs:
     scope: RUN_AND_BUILD_TIME
     type: SECRET
     value: noreply@example.com
+  - key: ALLOWED_EMAIL_REGEX
+    scope: RUN_AND_BUILD_TIME
+    value: '^[A-Za-z0-9._%+-]+@example\.com$'
 jobs:
   - name: migrate
     build_command: npm run build

@@ -31,6 +31,11 @@ const options = {
     verifyRequest: '/auth/verify',
   },
   callbacks: {
+    async signIn({ user }: { user: any }) {
+      const email = (user as { email: string }).email;
+      if (!process.env.ALLOWED_EMAIL_REGEX) return false;
+      return RegExp(process.env.ALLOWED_EMAIL_REGEX).test(email);
+    },
     async session({ session, user }: { session: Session; user: any }) {
       if (session.user) {
         session.user.id = (user as User).id;
