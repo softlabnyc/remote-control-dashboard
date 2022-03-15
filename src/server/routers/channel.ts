@@ -139,8 +139,17 @@ export const channelRouter = createRouter()
       key: Yup.string().matches(new RegExp('^[A-Za-z0-9-_.~]*$')).required(),
       uuid: Yup.string(),
     }),
-    resolve({ ctx, input }) {
+    async resolve({ ctx, input }) {
       const { key, uuid } = input;
+      const channel = await ctx.prisma.channel.findUnique({
+        where: { key },
+      });
+      if (!channel) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `No channel with key '${key}'`,
+        });
+      }
       return new Subscription<{ data: Prisma.JsonObject }>((emit) => {
         const handleUpdate = (
           k: string,
